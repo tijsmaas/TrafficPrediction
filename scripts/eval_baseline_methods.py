@@ -4,16 +4,18 @@ import pandas as pd
 
 from statsmodels.tsa.vector_ar.var_model import VAR
 
-from lib import utils
-from lib.metrics import masked_rmse_np, masked_mape_np, masked_mae_np
+from lib.logger import get_logger
+from lib.metrics.metrics import masked_rmse_np, masked_mape_np, masked_mae_np
 from lib.utils import StandardScaler
+
+
 
 
 def historical_average_predict(df, period=12 * 24 * 7, test_ratio=0.2, null_val=0.):
     """
     Calculates the historical average of sensor reading.
     :param df:
-    :param period: default 1 week.
+    :param period: default 1 week. (12 measurements per hour, 24 hours, 7 days)
     :param test_ratio:
     :param null_val: default 0.
     :return:
@@ -127,13 +129,14 @@ def eval_var(traffic_reading_df, n_lags=3):
 
 def main(args):
     traffic_reading_df = pd.read_hdf(args.traffic_reading_filename)
-    eval_static(traffic_reading_df)
+    # eval_static(traffic_reading_df)
     eval_historical_average(traffic_reading_df, period=7 * 24 * 12)
-    eval_var(traffic_reading_df, n_lags=3)
+    # eval_var(traffic_reading_df, n_lags=3)
 
 
 if __name__ == '__main__':
-    logger = utils.get_logger('data/model', 'Baseline')
+    # Ex with python -m scripts.eval_baseline_methods
+    logger = get_logger('data/model', 'Baseline')
     parser = argparse.ArgumentParser()
     parser.add_argument('--traffic_reading_filename', default="data/metr-la.h5", type=str,
                         help='Path to the traffic Dataframe.')

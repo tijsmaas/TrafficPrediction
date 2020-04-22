@@ -11,7 +11,8 @@ import yaml
 
 from lib import utils, metrics
 from lib.AMSGrad import AMSGrad
-from lib.metrics import masked_mae_loss
+from lib.logger import get_logger, add_simple_summary
+from lib.metrics.metrics_tf import masked_mae_loss
 
 from model.dcrnn_model import DCRNNModel
 
@@ -31,7 +32,7 @@ class DCRNNSupervisor(object):
         # logging.
         self._log_dir = self._get_log_dir(kwargs)
         log_level = self._kwargs.get('log_level', 'INFO')
-        self._logger = utils.get_logger(self._log_dir, __name__, 'info.log', level=log_level)
+        self._logger = get_logger(self._log_dir, __name__, 'info.log', level=log_level)
         self._writer = tf.summary.FileWriter(self._log_dir)
         self._logger.info(kwargs)
 
@@ -224,7 +225,7 @@ class DCRNNSupervisor(object):
                                                    training=False)
             val_loss, val_mae = np.asscalar(val_results['loss']), np.asscalar(val_results['mae'])
 
-            utils.add_simple_summary(self._writer,
+            add_simple_summary(self._writer,
                                      ['loss/train_loss', 'metric/train_mae', 'loss/val_loss', 'metric/val_mae'],
                                      [train_loss, train_mae, val_loss, val_mae], global_step=global_step)
             end_time = time.time()
@@ -262,7 +263,7 @@ class DCRNNSupervisor(object):
 
         # y_preds:  a list of (batch_size, horizon, num_nodes, output_dim)
         test_loss, y_preds = test_results['loss'], test_results['outputs']
-        utils.add_simple_summary(self._writer, ['loss/test_loss'], [test_loss], global_step=global_step)
+        add_simple_summary(self._writer, ['loss/test_loss'], [test_loss], global_step=global_step)
 
         y_preds = np.concatenate(y_preds, axis=0)
         scaler = self._data['scaler']
@@ -283,7 +284,7 @@ class DCRNNSupervisor(object):
                     horizon_i + 1, mae, mape, rmse
                 )
             )
-            utils.add_simple_summary(self._writer,
+            add_simple_summary(self._writer,
                                      ['%s_%d' % (item, horizon_i + 1) for item in
                                       ['metric/rmse', 'metric/mape', 'metric/mae']],
                                      [rmse, mape, mae],
@@ -293,6 +294,27 @@ class DCRNNSupervisor(object):
             'groundtruth': y_truths
         }
         return outputs
+
+
+    def print_datastream(self, sess):
+        data_generator = self._data['test_loader'].get_iterator()
+        scaler = self._data['scaler']
+        X = []
+        Y = []
+        for _, (x, y) in enumerate(data_generator):
+            X.append(x)
+            Y.append(y)
+
+        outputs = {
+            'scaler': {
+                'mean':  scaler.mean,
+                'std': scaler.std
+            },
+            'X': X,
+            'Y': Y
+        }
+        return outputs
+
 
     def load(self, sess, model_filename):
         """

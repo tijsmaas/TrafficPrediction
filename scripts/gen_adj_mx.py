@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import pickle
 
+# Modified to use graph_sensor_locations.csv rather than the sensor_ids file.
 
 def get_adjacency_matrix(distance_df, sensor_ids, normalized_k=0.1):
     """
@@ -44,18 +45,28 @@ def get_adjacency_matrix(distance_df, sensor_ids, normalized_k=0.1):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--sensor_ids_filename', type=str, default='data/sensor_graph/graph_sensor_ids.txt',
+    parser.add_argument('--sensor_locations_filename', type=str, default='data/sensor_graph/graph_sensor_locations.csv',
+                        help='File containing sensor locations, to obtain the right sensor id ordering.')
+    parser.add_argument('--sensor_ids_filename', type=str, default=None,  # default='data/sensor_graph/graph_sensor_ids.txt',
                         help='File containing sensor ids separated by comma.')
     parser.add_argument('--distances_filename', type=str, default='data/sensor_graph/distances_la_2012.csv',
-                        help='CSV file containing sensor distances with three columns: [from, to, distance].')
+                        help='CSV file containing sensor travel distances with three columns: [from, to, distance].')
     parser.add_argument('--normalized_k', type=float, default=0.1,
                         help='Entries that become lower than normalized_k after normalization are set to zero for sparsity.')
-    parser.add_argument('--output_pkl_filename', type=str, default='data/sensor_graph/adj_mat.pkl',
+    parser.add_argument('--output_pkl_filename', type=str, default='data/sensor_graph/adj_mx.pkl',
                         help='Path of the output file.')
     args = parser.parse_args()
 
-    with open(args.sensor_ids_filename) as f:
-        sensor_ids = f.read().strip().split(',')
+    if args.sensor_ids_filename:
+        with open(args.sensor_ids_filename) as f:
+            sensor_ids = f.read().strip().split(',')
+    else:
+        sensor_ids_df = pd.read_csv(args.sensor_locations_filename, dtype={'index': 'int', 'sensor_id': 'str'})
+        # Convert to list ordered by index
+        sensor_ids = [None] * len(sensor_ids_df.values)
+        for index, sensor_id, *more in sensor_ids_df.values:
+            sensor_ids[index] = sensor_id
+
     distance_df = pd.read_csv(args.distances_filename, dtype={'from': 'str', 'to': 'str'})
     _, sensor_id_to_ind, adj_mx = get_adjacency_matrix(distance_df, sensor_ids)
     # Save to pickle file.
