@@ -7,8 +7,8 @@ from tqdm import tqdm
 
 from lib.gman_utils import loadData
 from lib.metrics.metrics_tf import masked_mae_loss_gman
-from lib.metrics.metrics import calculate_metrics, masked_mae_np
-from model import gman_model
+from lib.metrics.metrics_np import calculate_metrics, masked_mae_np
+from model.tf import gman_model
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--time_slot', type=int, default=5,
@@ -56,7 +56,8 @@ print(str(args)[10: -1])
 # load data
 print('loading data...')
 (trainX, trainTE, trainY, valX, valTE, valY, testX, testTE, testY, SE,
- mean, std, data) = loadData(args)
+ mean, std, ds) = loadData(args)
+data = ds.data
 print('trainX: %s\ttrainY: %s' % (trainX.shape, trainY.shape))
 print('valX:   %s\t\tvalY:   %s' % (valX.shape, valY.shape))
 print('testX:  %s\t\ttestY:  %s' % (testX.shape, testY.shape))
@@ -205,7 +206,7 @@ test_mae, test_rmse, test_mape = calculate_metrics(testPred, testY)
 print('test             %.2f\t\t%.2f\t\t%.2f%%' %
       (test_mae, test_rmse, test_mape * 100))
 
-data.experiment_save(masked_mae_np(testPred, testY, null_val=0.0), fname='results/gman_predictions')
+ds.experiment_save(masked_mae_np(testPred, testY, null_val=0.0), fname='results/gman_predictions')
 
 print('performance in each prediction step')
 MAE, RMSE, MAPE = [], [], []
@@ -257,7 +258,7 @@ pred_mx = np.sum(pred_mx, axis=1) / pred_mx.shape[1]
 # Switch cols timesteps and sensors
 pred_mx = pred_mx.transpose((0, 2, 1))
 print(pred_mx.shape)
-data.experiment_save(pred_mx, 'results/gman_preds')
+ds.experiment_save(pred_mx, 'results/gman_preds')
 
 
 end = time.time()

@@ -5,7 +5,7 @@ import pandas as pd
 from statsmodels.tsa.vector_ar.var_model import VAR
 
 from lib.logger import get_logger
-from lib.metrics.metrics import masked_rmse_np, masked_mape_np, masked_mae_np
+from lib.metrics.metrics_np import masked_rmse_np, masked_mape_np, masked_mae_np
 from lib.utils import StandardScaler
 
 

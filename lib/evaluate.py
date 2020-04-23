@@ -2,9 +2,6 @@ import numpy as np
 from tqdm import tqdm
 import tensorflow as tf
 
-from lib import metrics
-
-
 def compute_preds(self, sess, model, data_generator):
     y_reals = []
     outputs = []

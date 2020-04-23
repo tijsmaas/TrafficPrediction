@@ -26,12 +26,12 @@ train:
   epochs: 100
   epsilon: 0.001
   global_step: 32250
-  log_dir: experiments/metr-la/logs/dcrnn/
+  log_dir: data/metr-la/results/dcrnn_logs/
   lr_decay_ratio: 0.1
   max_grad_norm: 5
   max_to_keep: 100
   min_learning_rate: 2.0e-06
-  model_filename: experiments/metr-la/checkpoints/dcrnn/pretrained-2.7589-32250
+  model_filename: data/metr-la/pretrained/models-2.7589-32250
   optimizer: adam
   patience: 50
   steps:

@@ -9,12 +9,13 @@ import tensorflow as tf
 import time
 import yaml
 
-from lib import utils, metrics
+from lib import utils
 from lib.AMSGrad import AMSGrad
 from lib.logger import get_logger, add_simple_summary
+from lib.metrics import metrics_np
 from lib.metrics.metrics_tf import masked_mae_loss
 
-from model.dcrnn_model import DCRNNModel
+from model.tf.dcrnn_model import DCRNNModel
 
 
 class DCRNNSupervisor(object):
@@ -37,7 +38,8 @@ class DCRNNSupervisor(object):
         self._logger.info(kwargs)
 
         # Data preparation
-        self._data = utils.load_dataset(**self._data_kwargs)
+        self.ds = utils.load_dataset(**self._data_kwargs)
+        self._data = self.ds.data
         for k, v in self._data.items():
             if hasattr(v, 'shape'):
                 self._logger.info((k, v.shape))
@@ -276,9 +278,9 @@ class DCRNNSupervisor(object):
             y_pred = scaler.inverse_transform(y_preds[:y_truth.shape[0], horizon_i, :, 0])
             predictions.append(y_pred)
 
-            mae = metrics.masked_mae_np(y_pred, y_truth, null_val=0)
-            mape = metrics.masked_mape_np(y_pred, y_truth, null_val=0)
-            rmse = metrics.masked_rmse_np(y_pred, y_truth, null_val=0)
+            mae = metrics_np.masked_mae_np(y_pred, y_truth, null_val=0)
+            mape = metrics_np.masked_mape_np(y_pred, y_truth, null_val=0)
+            rmse = metrics_np.masked_rmse_np(y_pred, y_truth, null_val=0)
             self._logger.info(
                 "Horizon {:02d}, MAE: {:.2f}, MAPE: {:.4f}, RMSE: {:.2f}".format(
                     horizon_i + 1, mae, mape, rmse

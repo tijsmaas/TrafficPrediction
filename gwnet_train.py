@@ -4,7 +4,7 @@ import argparse
 import time
 from lib import utils
 from lib.metrics import metrics_torch
-from model.engine import trainer
+from model.pytorch.engine import trainer
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--device',type=str,default='cuda:0',help='')
@@ -41,7 +41,8 @@ def main():
     #load data
     device = torch.device(args.device)
     sensor_ids, sensor_id_to_ind, adj_mx = utils.load_adj(args.adjdata, args.adjtype)
-    dataloader = utils.load_dataset(args.data, args.batch_size, args.batch_size, args.batch_size)
+    ds = utils.load_dataset(args.data, args.batch_size, args.batch_size, args.batch_size)
+    dataloader = ds.data
     scaler = dataloader['scaler']
     supports = [torch.tensor(i).to(device) for i in adj_mx]
 

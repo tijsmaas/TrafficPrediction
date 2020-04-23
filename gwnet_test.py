@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from model.model_gwnet import gwnet
+from model.pytorch.model_gwnet import gwnet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--device',type=str,default='cuda:0',help='')
@@ -57,7 +57,8 @@ def main():
 
     print('model load successfully')
 
-    dataloader = utils.load_dataset(args.data, args.batch_size, args.batch_size, args.batch_size)
+    ds = utils.load_dataset(args.data, args.batch_size, args.batch_size, args.batch_size)
+    dataloader = ds.data
     scaler = dataloader['scaler']
     outputs = []
     realy = torch.Tensor(dataloader['y_test']).to(device)
@@ -80,6 +81,7 @@ def main():
     for i in range(12):
         pred = scaler.inverse_transform(yhat[:,:,i])
         real = realy[:,:,i]
+        # TODO: test
         metrics = metrics_torch.calculate_metrics_torch(pred, real)
         log = 'Evaluate best model on test data for horizon {:d}, Test MAE: {:.4f}, Test MAPE: {:.4f}, Test RMSE: {:.4f}'
         print(log.format(i+1, metrics[0], metrics[1], metrics[2]))
@@ -88,7 +90,7 @@ def main():
         armse.append(metrics[2])
 
     log = 'On average over 12 horizons, Test MAE: {:.4f}, Test MAPE: {:.4f}, Test RMSE: {:.4f}'
-    print(log.format(np.mean(amae),np.mean(amape),np.mean(armse)))
+    print(log.format(np.mean(amae),np.mean(amape), np.mean(armse)))
 
 
     if args.plotheatmap == "True":
@@ -99,7 +101,7 @@ def main():
         adp = adp*(1/np.max(adp))
         df = pd.DataFrame(adp)
         sns.heatmap(df, cmap="RdYlBu")
-        plt.savefig("./emb"+ '.pdf')
+        ds.experiment_save_plot(plt, 'viz/gwnet_emb.pdf')
 
     y12 = realy[:,99,11].cpu().detach().numpy()
     yhat12 = scaler.inverse_transform(yhat[:,99,11]).cpu().detach().numpy()

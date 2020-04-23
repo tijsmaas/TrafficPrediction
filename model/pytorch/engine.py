@@ -3,7 +3,7 @@ import torch.optim as optim
 from torch import nn
 
 from lib.metrics import metrics_torch
-from model.model_gwnet import gwnet
+from model.pytorch.model_gwnet import gwnet
 
 
 class trainer():

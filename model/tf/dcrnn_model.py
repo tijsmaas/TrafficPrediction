@@ -6,7 +6,7 @@ import tensorflow as tf
 
 from tensorflow.contrib import legacy_seq2seq
 
-from model.dcrnn_cell import DCGRUCell
+from model.tf.dcrnn_cell import DCGRUCell
 
 
 class DCRNNModel(object):

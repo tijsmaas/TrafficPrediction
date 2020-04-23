@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from model import layers_tf
+from model.tf import layers_tf
 
 
 def placeholder(num_his, num_pred, num_vertex):

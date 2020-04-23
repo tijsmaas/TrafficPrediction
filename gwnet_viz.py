@@ -1,5 +1,3 @@
-import os
-
 import torch
 from tqdm import tqdm
 
@@ -10,8 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from model.model_gwnet import gwnet
-from model.model_lstm import LSTMNet
+from model.pytorch.model_gwnet import gwnet
+from model.pytorch.model_lstm import LSTMNet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--device',type=str,default='cuda:0',help='')
@@ -91,7 +89,8 @@ def main():
 
     print('Evaluating with simulated sensor failure...')
 
-    dataloader = utils.load_dataset(args.data, args.batch_size, args.batch_size, args.batch_size)
+    ds = utils.load_dataset(args.data, args.batch_size, args.batch_size, args.batch_size)
+    dataloader = ds.data
     scaler = dataloader['scaler']
     category = 'val'
     loader = dataloader[category + '_loader']
@@ -125,16 +124,16 @@ def main():
     pred_mx = np.sum(pred_mx, axis=1) / pred_mx.shape[1]
     print(pred_mx.shape)
     if args.lstm:
-        dataloader.experiment_save(pred_mx, 'results/lstm_preds')
+        ds.experiment_save(pred_mx, 'results/lstm_preds')
     else:
-        dataloader.experiment_save(pred_mx, 'results/graph_wavenet_preds')
+        ds.experiment_save(pred_mx, 'results/graph_wavenet_preds')
 
     # Heatmap
     plot = np.sum(pred_mx[:, dis_sensors, ...], axis=2)
     for i in range(plot.shape[0]):
         plot[i, i] = 0.0
     sns.heatmap(plot, cmap="RdYlBu")
-    dataloader.experiment_save_plot(plt, 'viz/hm.pdf')
+    ds.experiment_save_plot(plt, 'viz/hm.pdf')
 
 if __name__ == "__main__":
     main()

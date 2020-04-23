@@ -2,9 +2,9 @@
 Preliminary framework to use the same dataloader and evaluation methods for Deep Learning Spatio-Temporal Traffic Prediction. This enables data augmentation and other evaluation methods (e.g.  test model robustness to sensor failure) . 
 
 This repository contains the following implementations:
-- (DCRNN) Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting
-- (Graph Wavenet) Graph WaveNet for Deep Spatial-Temporal Graph Modeling
-- (GMAN) Graph Multi-Attention Network for Traffic Prediction
+- **DCRNN** Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting
+- **Graph Wavenet** Graph WaveNet for Deep Spatial-Temporal Graph Modeling
+- **GMAN** Graph Multi-Attention Network for Traffic Prediction
 
 
 TensorFlow implementation of Diffusion Convolutional Recurrent Neural Network in the following paper: \
@@ -26,16 +26,6 @@ Chuanpan Zheng, Xiaoliang Fan, Cheng Wang, and Jianzhong Qi. "[GMAN: A Graph Mul
 - [ ] Add PEMS-BAY dataset
 - [ ] Create performance table (auto-generated)
 
-
-## Requirements
-- scipy>=1.2.0
-- numpy>=1.12.1
-- pandas>=0.24.2
-- pyaml
-- statsmodels
-- tqdm
-- tensorflow>=1.14.0
-- torch>=1.4.0
 
 Dependency can be installed using the following command:
 ```bash
