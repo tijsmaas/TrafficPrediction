@@ -80,7 +80,7 @@ def main():
         if args.checkpoint:
             model.load_checkpoint(torch.load(args.checkpoint))
     else:
-        # --device cuda:0 --gcn_bool --addaptadj --checkpoint data/metr-la/models/graph_wavenet_repr.pth
+        # --device cuda:0 --gcn_bool --addaptadj --checkpoint data/metr-la/pretrained/graph_wavenet_repr.pth
         print('Selected Graph Wavenet model')
         model = gwnet(device, args.num_nodes, args.dropout, supports=supports, gcn_bool=args.gcn_bool, addaptadj=args.addaptadj, aptinit=adjinit)
         model.to(device)
@@ -125,9 +125,9 @@ def main():
     pred_mx = np.sum(pred_mx, axis=1) / pred_mx.shape[1]
     print(pred_mx.shape)
     if args.lstm:
-        dataloader.experiment_save(pred_mx, 'predictions/lstm_preds')
+        dataloader.experiment_save(pred_mx, 'results/lstm_preds')
     else:
-        dataloader.experiment_save(pred_mx, 'predictions/graph_wavenet_preds')
+        dataloader.experiment_save(pred_mx, 'results/graph_wavenet_preds')
 
     # Heatmap
     plot = np.sum(pred_mx[:, dis_sensors, ...], axis=2)

@@ -43,9 +43,9 @@ parser.add_argument('--traffic_file', default='data/metr-la/metr-la.h5',
                     help='traffic file')
 parser.add_argument('--SE_file', default='data/metr-la/SE.txt',
                     help='spatial emebdding file')
-parser.add_argument('--model_file', default='experiments/metr-la/models/GMAN_latest',
+parser.add_argument('--model_file', default='data/metr-la/pretrained/GMAN_latest',
                     help='save the model to disk')
-# parser.add_argument('--log_file', default='experiments/metr-la/logs/gman_log',
+# parser.add_argument('--log_file', default='data/metr-la/logs/gman_log',
 #                     help='log file')
 args = parser.parse_args()
 
@@ -205,7 +205,7 @@ test_mae, test_rmse, test_mape = calculate_metrics(testPred, testY)
 print('test             %.2f\t\t%.2f\t\t%.2f%%' %
       (test_mae, test_rmse, test_mape * 100))
 
-data.experiment_save(masked_mae_np(testPred, testY, null_val=0.0), fname='predictions/gman_predictions')
+data.experiment_save(masked_mae_np(testPred, testY, null_val=0.0), fname='results/gman_predictions')
 
 print('performance in each prediction step')
 MAE, RMSE, MAPE = [], [], []
@@ -257,7 +257,7 @@ pred_mx = np.sum(pred_mx, axis=1) / pred_mx.shape[1]
 # Switch cols timesteps and sensors
 pred_mx = pred_mx.transpose((0, 2, 1))
 print(pred_mx.shape)
-data.experiment_save(pred_mx, 'predictions/gman_preds')
+data.experiment_save(pred_mx, 'results/gman_preds')
 
 
 end = time.time()
