@@ -11,9 +11,9 @@ For citation see below.
 This work is preliminary and will change in the next months! 
 
 ## Results
-![Results obtained by reproducing architecture as described in the paper](https://github.com/tijsmaas/TrafficPrediction/blob/master/reproduced_papers_results.png?raw=true)
+![Results obtained by reproducing architecture as described in the paper](https://github.com/tijsmaas/TrafficPrediction/blob/master/figures/reproduced_papers_results.png?raw=true)
 
-In case precomputed graph embeddings are used, they have also been regenerated based on the information in the paper and the adacency matrix.
+In case precomputed graph embeddings are used, they have also been regenerated using the adjacency matrix and based on the information in the paper.
 
 ## Tasks
 - [X] Add DCRNN
@@ -22,7 +22,9 @@ In case precomputed graph embeddings are used, they have also been regenerated b
 - [ ] Add ST-GCN
 - [X] Add [DCRNN-Pytorch](https://github.com/chnsh/DCRNN_PyTorch)
 - [ ] Add PEMS-BAY dataset
-- [ ] Create performance table (auto-generated)
+- [X] Create performance table
+- [ ] Show robustness/inference statistics 
+
 
 
 Dependency can be installed using the following command:
@@ -49,7 +51,7 @@ Here is an article about [Using HDF5 with Python](https://medium.com/@jerilkuria
 
 ```bash
 # METR-LA
-python dcrnn_test.py --config_filename=data/metr-la/pretrained/dcrnn_config.yaml
+python dcrnn_test_pytorch.py --config_filename=data/metr-la/pretrained/dcrnn_test_pytorch.yaml
 python gwnet_test.py --checkpoint data/metr-la/pretrained/graph_wavenet_repr.pth --data data/metr-la/metr-la.h5
 python gwnet_test.py --lstm --nhid 256 --checkpoint data/metr-la/models/fc_lstm.pth --data data/metr-la/metr-la.h5
 python gman_train.py --max_epoch 0 --SE_file data/metr-la/SE(METR-LA).txt --model_file data/metr-la/pretrained/GMAN_METR-LA --traffic_file data/metr-la/metr-la.h5
