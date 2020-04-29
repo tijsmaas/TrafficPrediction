@@ -1,28 +1,26 @@
 # Spatio-Temporal Traffic Prediction
-Preliminary framework to use the same dataloader and evaluation methods for Deep Learning Spatio-Temporal Traffic Prediction. This enables data augmentation and other evaluation methods (e.g.  test model robustness to sensor failure) . 
+Framework to use the same dataloader and evaluation methods to compare different Deep Learning Spatio-Temporal Traffic Prediction algorithms. 
+In the future, better data augmentation and other evaluation methods will be added (e.g. test model robustness to sensor failure). 
 
 This repository contains the following implementations:
-- **DCRNN** Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting
-- **Graph Wavenet** Graph WaveNet for Deep Spatial-Temporal Graph Modeling
-- **GMAN** Graph Multi-Attention Network for Traffic Prediction
+- **[DCRNN](https://arxiv.org/abs/1707.01926)** Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting
+- **[Graph WaveNet](https://arxiv.org/abs/1906.00121)** Graph WaveNet for Deep Spatial-Temporal Graph Modeling
+- **[GMAN](https://arxiv.org/abs/1911.08415)** Graph Multi-Attention Network for Traffic Prediction
+For citation see below.
 
+This work is preliminary and will change in the next months! 
 
-TensorFlow implementation of Diffusion Convolutional Recurrent Neural Network in the following paper: \
-Yaguang Li, Rose Yu, Cyrus Shahabi, Yan Liu, [Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting](https://arxiv.org/abs/1707.01926), ICLR 2018.
+## Results
+![Results obtained by reproducing architecture as described in the paper](https://github.com/tijsmaas/TrafficPrediction/blob/master/reproduced_papers_results.png?raw=true)
 
-PyTorch implementation of Graph WaveNet in the following paper: \
-[Graph WaveNet for Deep Spatial-Temporal Graph Modeling, IJCAI 2019] (https://arxiv.org/abs/1906.00121).
-
-TensorFlow implementation of Graph Multi-Attention Network in the following paper: \
-Chuanpan Zheng, Xiaoliang Fan, Cheng Wang, and Jianzhong Qi. "[GMAN: A Graph Multi-Attention Network for Traffic Prediction](https://arxiv.org/abs/1911.08415)", AAAI2020 (https://arxiv.org/abs/1911.08415)
-
+In case precomputed graph embeddings are used, they have also been regenerated based on the information in the paper and the adacency matrix.
 
 ## Tasks
 - [X] Add DCRNN
 - [X] Add Graph Wavenet
 - [X] Add GMAN
 - [ ] Add ST-GCN
-- [ ] Add [DCRNN-Pytorch](https://github.com/chnsh/DCRNN_PyTorch)
+- [X] Add [DCRNN-Pytorch](https://github.com/chnsh/DCRNN_PyTorch)
 - [ ] Add PEMS-BAY dataset
 - [ ] Create performance table (auto-generated)
 
@@ -53,7 +51,7 @@ Here is an article about [Using HDF5 with Python](https://medium.com/@jerilkuria
 # METR-LA
 python dcrnn_test.py --config_filename=data/metr-la/pretrained/dcrnn_config.yaml
 python gwnet_test.py --checkpoint data/metr-la/pretrained/graph_wavenet_repr.pth --data data/metr-la/metr-la.h5
-python gwnet_test.py --lstm --checkpoint data/metr-la/models/fc_lstm.pth --data data/metr-la/metr-la.h5
+python gwnet_test.py --lstm --nhid 256 --checkpoint data/metr-la/models/fc_lstm.pth --data data/metr-la/metr-la.h5
 python gman_train.py --max_epoch 0 --SE_file data/metr-la/SE(METR-LA).txt --model_file data/metr-la/pretrained/GMAN_METR-LA --traffic_file data/metr-la/metr-la.h5
 ```
 The generated prediction are stored in `data/{metr-la|pems-bay}/results/`.
@@ -73,7 +71,17 @@ The world-coordinate locations of the sensors are available at `data/{metr-la|pe
 ## Model Training & Evaluation
 To be added.
 
+
 ## Citation
+
+TensorFlow implementation of Diffusion Convolutional Recurrent Neural Network in the following paper: \
+Yaguang Li, Rose Yu, Cyrus Shahabi, Yan Liu, [Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting](https://arxiv.org/abs/1707.01926), ICLR 2018.
+
+PyTorch implementation of Graph WaveNet in the following paper: \
+[Graph WaveNet for Deep Spatial-Temporal Graph Modeling, IJCAI 2019] (https://arxiv.org/abs/1906.00121).
+
+TensorFlow implementation of Graph Multi-Attention Network in the following paper: \
+Chuanpan Zheng, Xiaoliang Fan, Cheng Wang, and Jianzhong Qi. "[GMAN: A Graph Multi-Attention Network for Traffic Prediction](https://arxiv.org/abs/1911.08415)", AAAI2020 (https://arxiv.org/abs/1911.08415)
 
 If you find this repository, e.g., the code and the datasets, useful in your research, please cite the following papers:
 ```

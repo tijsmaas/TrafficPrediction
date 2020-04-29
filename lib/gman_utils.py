@@ -1,8 +1,7 @@
 import numpy as np
-import pandas as pd
 
 # log string
-from lib.dataloader import Dataset
+from lib.dataloaders.dataloader import Dataset
 
 def seq2instance(data, num_his, num_pred):
     num_step, dims = data.shape

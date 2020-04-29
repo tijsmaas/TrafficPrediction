@@ -1,100 +1,43 @@
 import torch
 
 from lib import utils
-from lib.metrics import metrics_torch
+from lib.dataloaders.dataloader import Dataset
+from lib.metrics import metrics_torch, metrics_np
 import argparse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from model.pytorch.model_gwnet import gwnet
+from model.pytorch import supervisor
+from model.pytorch.engine import Evaluator
+from model.pytorch.gwnet_model import gwnet
+from model.pytorch.lstm_model import LSTMNet
+import torch.nn.functional as F
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--device',type=str,default='cuda:0',help='')
-parser.add_argument('--data',type=str,default='data/metr-la/metr-la.h5',help='data path')
-parser.add_argument('--adjdata',type=str,default='data/metr-la/adj_mx.pkl',help='adj data path')
-parser.add_argument('--adjtype',type=str,default='doubletransition',help='adj type')
-parser.add_argument('--gcn_bool',action='store_true',help='whether to add graph convolution layer')
-parser.add_argument('--aptonly',action='store_true',help='whether only adaptive adj')
-parser.add_argument('--addaptadj',action='store_true',help='whether add adaptive adj')
-parser.add_argument('--randomadj',action='store_true',help='whether random initialize adaptive adj')
-parser.add_argument('--seq_length',type=int,default=12,help='')
-parser.add_argument('--nhid',type=int,default=32,help='')
-parser.add_argument('--in_dim',type=int,default=2,help='inputs dimension')
-parser.add_argument('--num_nodes',type=int,default=207,help='number of nodes')
-parser.add_argument('--batch_size',type=int,default=64,help='batch size')
-parser.add_argument('--learning_rate',type=float,default=0.001,help='learning rate')
-parser.add_argument('--dropout',type=float,default=0.3,help='dropout rate')
-parser.add_argument('--weight_decay',type=float,default=0.0001,help='weight decay rate')
-parser.add_argument('--checkpoint',type=str,help='')
-parser.add_argument('--plotheatmap',type=str,default='True',help='')
+from model.pytorch.supervisor import Supervisor
 
 
-args = parser.parse_args()
-
-
-
-
-def main():
+def main(args):
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
     device = torch.device(args.device)
-
-    _, _, adj_mx = utils.load_adj(args.adjdata, args.adjtype)
-    supports = [torch.tensor(i).to(device) for i in adj_mx]
-    if args.randomadj:
-        adjinit = None
-    else:
-        adjinit = supports[0]
-
-    if args.aptonly:
-        supports = None
-
-    model = gwnet(device, args.num_nodes, args.dropout, supports=supports, gcn_bool=args.gcn_bool, addaptadj=args.addaptadj, aptinit=adjinit)
-    model.to(device)
-    model.load_state_dict(torch.load(args.checkpoint))
-    model.eval()
-
-
-    print('model load successfully')
-
-    ds = utils.load_dataset(args.data, args.batch_size, args.batch_size, args.batch_size)
+    sensor_ids, sensor_id_to_ind, adj_mx = utils.load_adj(args.adjdata, args.adjtype)
+    ds = Dataset(args.data)
+    ds.load_category('test', args.batch_size)
     dataloader = ds.data
     scaler = dataloader['scaler']
-    outputs = []
-    realy = torch.Tensor(dataloader['y_test']).to(device)
-    realy = realy.transpose(1,3)[:,0,:,:]
 
-    for iter, (x, y) in enumerate(dataloader['test_loader'].get_iterator()):
-        testx = torch.Tensor(x).to(device)
-        testx = testx.transpose(1,3)
-        with torch.no_grad():
-            preds = model(testx).transpose(1,3)
-        outputs.append(preds.squeeze())
+    # Model loading
+    print(args)
+    sv = Supervisor(adj_mx, args)
 
-    yhat = torch.cat(outputs,dim=0)
-    yhat = yhat[:realy.size(0),...]
-
-
-    amae = []
-    amape = []
-    armse = []
-    for i in range(12):
-        pred = scaler.inverse_transform(yhat[:,:,i])
-        real = realy[:,:,i]
-        # TODO: test
-        metrics = metrics_torch.calculate_metrics_torch(pred, real)
-        log = 'Evaluate best model on test data for horizon {:d}, Test MAE: {:.4f}, Test MAPE: {:.4f}, Test RMSE: {:.4f}'
-        print(log.format(i+1, metrics[0], metrics[1], metrics[2]))
-        amae.append(metrics[0])
-        amape.append(metrics[1])
-        armse.append(metrics[2])
-
-    log = 'On average over 12 horizons, Test MAE: {:.4f}, Test MAPE: {:.4f}, Test RMSE: {:.4f}'
-    print(log.format(np.mean(amae),np.mean(amape), np.mean(armse)))
+    # Testing
+    yhat, realy = sv.show_multiple_horizon(scaler, dataloader['test_loader'])
 
 
     if args.plotheatmap == "True":
-        adp = F.softmax(F.relu(torch.mm(model.nodevec1, model.nodevec2)), dim=1)
+        adp = F.softmax(F.relu(torch.mm(sv.model.nodevec1, sv.model.nodevec2)), dim=1)
         device = torch.device('cpu')
         adp.to(device)
         adp = adp.cpu().detach().numpy()
@@ -114,4 +57,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = supervisor.get_argument_parser()
+    parser.add_argument('--plotheatmap', type=str, default='True', help='')
+    args = parser.parse_args()
+    main(args)

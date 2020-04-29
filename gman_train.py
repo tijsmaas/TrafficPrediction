@@ -6,7 +6,7 @@ import tensorflow as tf
 from tqdm import tqdm
 
 from lib.gman_utils import loadData
-from lib.metrics.metrics_tf import masked_mae_loss_gman
+from lib.metrics.metrics_tf import masked_mae_loss
 from lib.metrics.metrics_np import calculate_metrics, masked_mae_np
 from model.tf import gman_model
 
@@ -78,8 +78,9 @@ bn_decay = tf.minimum(0.99, 1 - bn_momentum)
 pred = gman_model.GMAN(
     X, TE, SE, args.num_his, args.num_pred, T, args.L, args.K, args.d,
     bn=True, bn_decay=bn_decay, is_training=is_training)
-pred = pred * std + mean
-loss_fn = masked_mae_loss_gman(null_val=0.0)
+# ADDED inverse scaling after model output
+null_val = 0.
+loss_fn = masked_mae_loss(ds.scaler, null_val)
 loss = loss_fn(preds=pred, labels=label)
 # loss = gman_mae_loss(pred, label)
 tf.compat.v1.add_to_collection('pred', pred)
@@ -119,7 +120,7 @@ for epoch in range(args.max_epoch):
     start_train = time.time()
     train_loss = 0
     num_batch = math.ceil(num_train / args.batch_size)
-    for batch_idx in range(num_batch):
+    for batch_idx in tqdm(range(num_batch)):
         start_idx = batch_idx * args.batch_size
         end_idx = min(num_train, (batch_idx + 1) * args.batch_size)
         feed_dict = {
@@ -128,7 +129,6 @@ for epoch in range(args.max_epoch):
             label: trainY[start_idx: end_idx],
             is_training: True}
         _, loss_batch = sess.run([train_op, loss], feed_dict=feed_dict)
-        print(batch_idx, '\t', loss_batch)
         train_loss += loss_batch * (end_idx - start_idx)
     train_loss /= num_train
     end_train = time.time()
@@ -186,6 +186,7 @@ def compute_preds(sess, setX, setTE, batch_size):
         pred_batch = sess.run(pred, feed_dict=feed_dict)
         preds.append(pred_batch)
     preds = np.concatenate(preds, axis=0)
+    preds = ds.scaler.inverse_transform(preds)
     return preds
 
 

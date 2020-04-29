@@ -8,8 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from model.pytorch.model_gwnet import gwnet
-from model.pytorch.model_lstm import LSTMNet
+from model.pytorch.gwnet_model import gwnet
+from model.pytorch.lstm_model import LSTMNet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--device',type=str,default='cuda:0',help='')
@@ -68,6 +68,7 @@ def main():
 
     if args.lstm:
         print('Selected LSTM-FC model')
+        # --device cuda:0 --nhid 256 --weight_decay 0.0005 --learning_rate 0.001 --isolated_sensors False --num_sensors 207   --checkpoint data/metr-la/pretrained/graph_wavenet_repr.pth
         args.nhid = 256
         args.weight_decay = 0.0005
         args.learning_rate = 0.001

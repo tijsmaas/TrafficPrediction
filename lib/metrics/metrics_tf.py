@@ -76,30 +76,17 @@ def masked_rmse_loss(scaler, null_val):
 
     return loss
 
-
+# preds are scaled(x), labels are y.
+# Hence need to inverse_scale(preds)
 def masked_mae_loss(scaler, null_val):
     def loss(preds, labels):
         if scaler:
-            preds = scaler.inverse_transform(preds)
-            labels = scaler.inverse_transform(labels)
+            preds = scaler.inverse_transform(preds) # (preds * scaler.std) + scaler.mean
+            # labels = scaler.inverse_transform(labels)
         mae = masked_mae_tf(preds=preds, labels=labels, null_val=null_val)
         return mae
 
     return loss
-
-# Orig GMAN implementation with minor edit, parameterising null_val.
-def masked_mae_loss_gman(null_val=0):
-    def loss(preds, labels):
-        mask = tf.not_equal(labels, null_val)
-        mask = tf.cast(mask, tf.float32)
-        mask /= tf.reduce_mean(mask) # <- Divide mask by how many missing?
-        mask = tf.compat.v2.where(
-            condition = tf.math.is_nan(mask), x = 0., y = mask)
-        loss = tf.abs(tf.subtract(preds, labels))
-        loss *= mask
-        loss = tf.compat.v2.where(
-            condition = tf.math.is_nan(loss), x = 0., y = loss)
-        mae = tf.reduce_mean(loss)
-        return mae
-
-    return loss
+# masked_mae_loss is similar to orig loss in GMAN implementation with minor edits:
+# - GMAN recognises 0 values the unk mask, we parameterise this as null_val
+# - GMAN scales at different points in the code

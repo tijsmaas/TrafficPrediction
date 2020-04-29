@@ -21,7 +21,6 @@ def main(args):
         tf_config.gpu_options.allow_growth = True
         with tf.Session(config=tf_config) as sess:
             supervisor = DCRNNSupervisor(adj_mx=adj_mx, **supervisor_config)
-
             supervisor.train(sess=sess)
 
 

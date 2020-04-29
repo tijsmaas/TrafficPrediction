@@ -1,11 +1,10 @@
 import scipy.sparse as sp
 import tensorflow as tf
-from lib.dataloader import *
+from lib.dataloaders.dataloader import *
 from scipy.sparse import linalg
 import numpy as np
 import pickle
 
-import os
 
 def sym_adj(adj):
     """Symmetrically normalize adjacency matrix."""

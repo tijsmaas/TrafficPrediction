@@ -24,8 +24,8 @@ def run_dcrnn(args):
         np.savez_compressed(args.output_filename+'.input.npz', **outputs)
         print('Evaluating...')
         supervisor.evaluate(sess)
-        print('Evaluating with simulated sensor failure')
-        evaluate_multiple(supervisor, sess, supervisor._data, supervisor._test_model, args.output_filename)
+        # print('Evaluating with simulated sensor failure')
+        # evaluate_multiple(supervisor, sess, supervisor._data, supervisor._test_model, args.output_filename)
 
 
 if __name__ == '__main__':

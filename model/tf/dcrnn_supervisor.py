@@ -8,6 +8,7 @@ import sys
 import tensorflow as tf
 import time
 import yaml
+from tqdm import tqdm
 
 from lib import utils
 from lib.AMSGrad import AMSGrad
@@ -153,7 +154,7 @@ class DCRNNSupervisor(object):
                 'outputs': model.outputs
             })
 
-        for _, (x, y) in enumerate(data_generator):
+        for i, (x, y) in tqdm(enumerate(data_generator)):
             feed_dict = {
                 model.inputs: x,
                 model.labels: y,
@@ -166,7 +167,7 @@ class DCRNNSupervisor(object):
             if writer is not None and 'merged' in vals:
                 writer.add_summary(vals['merged'], global_step=vals['global_step'])
             if return_output:
-                outputs.append(vals['outputs'])
+                outputs.append(self._data['scaler'].inverse_transform(vals['outputs']))
 
         results = {
             'loss': np.mean(losses),
@@ -263,6 +264,12 @@ class DCRNNSupervisor(object):
                                                 return_output=True,
                                                 training=False)
 
+        y_truths = []
+        for x,y in self._data['test_loader'].get_iterator():
+            for row in y:
+                y_truths.append(row)
+        y_truths = np.array(y_truths)
+
         # y_preds:  a list of (batch_size, horizon, num_nodes, output_dim)
         test_loss, y_preds = test_results['loss'], test_results['outputs']
         add_simple_summary(self._writer, ['loss/test_loss'], [test_loss], global_step=global_step)
@@ -270,27 +277,33 @@ class DCRNNSupervisor(object):
         y_preds = np.concatenate(y_preds, axis=0)
         scaler = self._data['scaler']
         predictions = []
-        y_truths = []
+        # y_truths = []
         for horizon_i in range(self._data['y_test'].shape[1]):
-            y_truth = scaler.inverse_transform(self._data['y_test'][:, horizon_i, :, 0])
-            y_truths.append(y_truth)
+            # y_truth = scaler.inverse_transform(self._data['y_test'][:, horizon_i, :, 0])
+            # y_pred = scaler.inverse_transform(y_preds[:y_truth.shape[0], horizon_i, :, 0])
 
-            y_pred = scaler.inverse_transform(y_preds[:y_truth.shape[0], horizon_i, :, 0])
+            # y_truth = self._data['y_test'][:, horizon_i, :, 0]  # Not scaled by our dataloader
+            y_truth = y_truths[:y_preds.shape[0], horizon_i, :, 0]
+            y_pred = y_preds[:, horizon_i, :, 0]  # Already scaled back by self.run_epoch_generator
+
+            # y_truths.append(y_truth)
             predictions.append(y_pred)
-
-            mae = metrics_np.masked_mae_np(y_pred, y_truth, null_val=0)
-            mape = metrics_np.masked_mape_np(y_pred, y_truth, null_val=0)
-            rmse = metrics_np.masked_rmse_np(y_pred, y_truth, null_val=0)
-            self._logger.info(
-                "Horizon {:02d}, MAE: {:.2f}, MAPE: {:.4f}, RMSE: {:.2f}".format(
-                    horizon_i + 1, mae, mape, rmse
+            try:
+                mae = metrics_np.masked_mae_np(y_pred, y_truth, null_val=0)
+                mape = metrics_np.masked_mape_np(y_pred, y_truth, null_val=0)
+                rmse = metrics_np.masked_rmse_np(y_pred, y_truth, null_val=0)
+                self._logger.info(
+                    "Horizon {:02d}, MAE: {:.2f}, MAPE: {:.4f}, RMSE: {:.2f}".format(
+                        horizon_i + 1, mae, mape, rmse
+                    )
                 )
-            )
-            add_simple_summary(self._writer,
-                                     ['%s_%d' % (item, horizon_i + 1) for item in
-                                      ['metric/rmse', 'metric/mape', 'metric/mae']],
-                                     [rmse, mape, mae],
-                                     global_step=global_step)
+                add_simple_summary(self._writer,
+                                         ['%s_%d' % (item, horizon_i + 1) for item in
+                                          ['metric/rmse', 'metric/mape', 'metric/mae']],
+                                         [rmse, mape, mae],
+                                         global_step=global_step)
+            except:
+                pass
         outputs = {
             'predictions': predictions,
             'groundtruth': y_truths
