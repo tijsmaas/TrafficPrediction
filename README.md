@@ -15,6 +15,12 @@ This work is preliminary and will change in the next months!
 
 In case precomputed graph embeddings are used, they have also been regenerated using the adjacency matrix and based on the information in the paper.
 
+### Model robustness to sensor defect
+Now one sensor at location (+) is disabled and these predictions are compared against original predictions on the (validation) dataset.
+![Results obtained by reproducing architecture as described in the paper](https://github.com/tijsmaas/TrafficPrediction/blob/master/figures/robustness_of_sensor_1.gif?raw=true)
+
+
+
 ## Tasks
 - [X] Add DCRNN
 - [X] Add Graph Wavenet
