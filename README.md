@@ -16,10 +16,12 @@ This work is preliminary and will change in the next months!
 In case precomputed graph embeddings are used, they have also been regenerated using the adjacency matrix and based on the information in the paper.
 
 ### Model robustness to sensor defect
-Now one sensor at location (+) is disabled and these predictions are compared against original predictions on the (validation) dataset.
+Now one sensor at location (+) is disabled and these predictions are compared against original predictions on the (validation) set.
 ![Results obtained by reproducing architecture as described in the paper](https://github.com/tijsmaas/TrafficPrediction/blob/master/figures/robustness_of_sensor_1.gif?raw=true)
 
-
+Increasing model robustness involves the following:
+1. A change in observation should not influence predictions of far away sensors.
+2. Mitigate local influence of faulty measurements.
 
 ## Tasks
 - [X] Add DCRNN
