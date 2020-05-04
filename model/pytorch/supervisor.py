@@ -26,7 +26,7 @@ def get_argument_parser():
     parser.add_argument('--dropout', type=float, default=0.3, help='dropout rate')
     parser.add_argument('--seed', type=int, default=42, help='random seed')
     # model selection
-    parser.add_argument('--checkpoint', type=str, default='data/metr-la/pretrained/fc_lstm.pth', help='load a model')
+    parser.add_argument('--checkpoint', type=str, help='load a model')
     parser.add_argument('--isolated_sensors', action='store_true', help='separate model for each sensor')
     parser.add_argument('--lstm', action='store_true', help='whether to choose the lstm model instead')
 
@@ -64,7 +64,7 @@ class Supervisor:
             if iter % print_every == 0:
                 log = 'Iter: {:03d}, Train Loss: {:.4f}, Train RMSE: {:.4f}, Train MAPE: {:.4f}'
                 print(log.format(iter, ep_loss[-1], ep_rmse[-1], ep_mape[-1]), flush=True)
-            if iter > 50: return
+            # if iter > 50: return
         return ep_loss, ep_rmse, ep_mape
 
 

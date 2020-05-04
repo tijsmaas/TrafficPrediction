@@ -12,8 +12,7 @@ def count_parameters(model):
 
 
 class Seq2SeqAttrs:
-    def __init__(self, adj_mx, **model_kwargs):
-        self.adj_mx = adj_mx
+    def __init__(self, supports, **model_kwargs):
         self.max_diffusion_step = int(model_kwargs.get('max_diffusion_step', 2))
         self.cl_decay_steps = int(model_kwargs.get('cl_decay_steps', 1000))
         self.filter_type = model_kwargs.get('filter_type', 'laplacian')
@@ -24,13 +23,13 @@ class Seq2SeqAttrs:
 
 
 class EncoderModel(nn.Module, Seq2SeqAttrs):
-    def __init__(self, adj_mx, **model_kwargs):
+    def __init__(self, supports, **model_kwargs):
         nn.Module.__init__(self)
-        Seq2SeqAttrs.__init__(self, adj_mx, **model_kwargs)
+        Seq2SeqAttrs.__init__(self, supports, **model_kwargs)
         self.input_dim = int(model_kwargs.get('input_dim', 1))
         self.seq_len = int(model_kwargs.get('seq_len'))  # for the encoder
         self.dcgru_layers = nn.ModuleList(
-            [DCGRUCell(self.rnn_units, adj_mx, self.max_diffusion_step, self.num_nodes,
+            [DCGRUCell(self.rnn_units, supports, self.max_diffusion_step, self.num_nodes,
                        filter_type=self.filter_type) for _ in range(self.num_rnn_layers)])
 
     def forward(self, inputs, hidden_state=None):
@@ -59,15 +58,15 @@ class EncoderModel(nn.Module, Seq2SeqAttrs):
 
 
 class DecoderModel(nn.Module, Seq2SeqAttrs):
-    def __init__(self, adj_mx, **model_kwargs):
+    def __init__(self, supports, **model_kwargs):
         # super().__init__(is_training, adj_mx, **model_kwargs)
         nn.Module.__init__(self)
-        Seq2SeqAttrs.__init__(self, adj_mx, **model_kwargs)
+        Seq2SeqAttrs.__init__(self, supports, **model_kwargs)
         self.output_dim = int(model_kwargs.get('output_dim', 1))
         self.horizon = int(model_kwargs.get('horizon', 1))  # for the decoder
         self.projection_layer = nn.Linear(self.rnn_units, self.output_dim)
         self.dcgru_layers = nn.ModuleList(
-            [DCGRUCell(self.rnn_units, adj_mx, self.max_diffusion_step, self.num_nodes,
+            [DCGRUCell(self.rnn_units, supports, self.max_diffusion_step, self.num_nodes,
                        filter_type=self.filter_type) for _ in range(self.num_rnn_layers)])
 
     def forward(self, inputs, hidden_state=None):
@@ -95,11 +94,11 @@ class DecoderModel(nn.Module, Seq2SeqAttrs):
 
 
 class DCRNNModel(nn.Module, Seq2SeqAttrs):
-    def __init__(self, adj_mx, logger, **model_kwargs):
+    def __init__(self, supports, logger, **model_kwargs):
         super().__init__()
-        Seq2SeqAttrs.__init__(self, adj_mx, **model_kwargs)
-        self.encoder_model = EncoderModel(adj_mx, **model_kwargs)
-        self.decoder_model = DecoderModel(adj_mx, **model_kwargs)
+        Seq2SeqAttrs.__init__(self, supports, **model_kwargs)
+        self.encoder_model = EncoderModel(supports, **model_kwargs)
+        self.decoder_model = DecoderModel(supports, **model_kwargs)
         self.cl_decay_steps = int(model_kwargs.get('cl_decay_steps', 1000))
         self.use_curriculum_learning = bool(model_kwargs.get('use_curriculum_learning', False))
         self._logger = logger

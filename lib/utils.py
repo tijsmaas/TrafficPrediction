@@ -1,5 +1,4 @@
 import scipy.sparse as sp
-import tensorflow as tf
 from lib.dataloaders.dataloader import *
 from scipy.sparse import linalg
 import numpy as np
@@ -72,6 +71,7 @@ def get_total_trainable_parameter_size():
     :return:
     """
     total_parameters = 0
+    import tensorflow as tf
     for variable in tf.trainable_variables():
         # shape is an array of tf.Dimension
         total_parameters += np.product([x.value for x in variable.get_shape()])
@@ -101,6 +101,11 @@ def load_adj(pkl_filename, adjtype):
         adj = [asym_adj(adj_mx)]
     elif adjtype == "doubletransition":
         adj = [asym_adj(adj_mx), asym_adj(np.transpose(adj_mx))]
+    elif adjtype == "random_walk":
+        adj = [np.transpose(calculate_random_walk_matrix(adj_mx))]
+    elif adjtype == "dual_random_walk":
+        adj = [np.transpose(calculate_random_walk_matrix(adj_mx)),
+               np.transpose(calculate_random_walk_matrix(np.transpose(adj_mx)))]
     elif adjtype == "identity":
         adj = [np.diag(np.ones(adj_mx.shape[0])).astype(np.float32)]
     else:

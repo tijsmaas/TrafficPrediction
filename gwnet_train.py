@@ -50,6 +50,7 @@ def main(args):
         # g['lr'] = lr
         t1 = time.time()
         dataloader['train_loader'].shuffle()
+        print(dataloader['train_loader'].xs.shape, sv)
         train_loss, train_rmse, train_mape = sv.run_epoch(dataloader['train_loader'], engine.train, args.print_every)
         t2 = time.time()
         mtrain_loss = np.mean(train_loss)
